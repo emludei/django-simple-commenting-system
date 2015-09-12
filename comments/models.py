@@ -21,7 +21,6 @@ class Comment(models.Model):
     comment = models.TextField(verbose_name=_('Comment'), max_length=COMMENTS_MAX_LENGTH)
     pub_date = models.DateTimeField(verbose_name=_('Date'), auto_now_add=True)
     is_removed = models.BooleanField(verbose_name='Is removed', default=False)
-    
     parent = models.ForeignKey('self', verbose_name=_('Parent'), null=True, blank=True, default=None)
     path = ArrayField(models.PositiveIntegerField(), editable=False)
 
@@ -34,7 +33,7 @@ class Comment(models.Model):
         return self.path[0]
 
     def root_path(self):
-        Comments.objects.filter(pk__in=self.path)
+        Comment.objects.filter(pk__in=self.path)
 
     def children(self):
         Comment.objects.filter(path__contains=self.path)
@@ -48,12 +47,12 @@ class Comment(models.Model):
         super(Comment, self).save(*args, **kwargs)
         if skip_build_tree:
             return None
-        
+
         tree_path = []
 
         if self.parent:
-            tree_path.extend(self.parent.path)            
-            if len(self.parent.path) < COMMENTS_MAX_DEPTH:                
+            tree_path.extend(self.parent.path)
+            if len(self.parent.path) < COMMENTS_MAX_DEPTH:
                 tree_path.append(self.pk)
         else:
             tree_path.append(self.pk)
@@ -64,11 +63,11 @@ class Comment(models.Model):
         db = router.db_for_write(Comment)
         with transaction.atomic(using=db):
             if self.parent:
-                first_children = Comments.objects.filter(
+                Comment.objects.filter(
                     parent=self.pk,
                 ).update(parent=self.parent)
 
-            remove_pk_from_path_tree(db, self.pk, self.path)            
+            remove_pk_from_path_tree(db, self.pk, self.path)
             super(Comment, self).delete(*args, **kwargs)
 
     class Meta(object):
