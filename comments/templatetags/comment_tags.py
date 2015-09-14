@@ -109,12 +109,12 @@ def render_comment_list(parser, token):
     return RenderCommentListNode.handle_token(parser, token)
 
 
-@register.filter
-def annotate_tree(comments):
-    return annotate_comment_tree(comments)
-
-
 @register.simple_tag
 def comments_count(obj):
     content_type = ContentType.objects.get_for_model(obj)
     return Comment.objects.filter(content_type=content_type, object_id=obj.id).count()
+
+
+@register.filter
+def annotate_tree(comments):
+    return annotate_comment_tree(comments)

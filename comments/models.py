@@ -9,7 +9,6 @@ from django.utils.translation import ugettext_lazy as _
 from comments.managers import CommentManager
 
 
-COMMENTS_MAX_LENGTH = getattr(settings, 'COMMENTS_MAX_LENGTH', 6000)
 COMMENTS_MAX_DEPTH = getattr(settings, 'COMMENTS_MAX_DEPTH', 10)
 
 
@@ -18,7 +17,7 @@ class Comment(models.Model):
     content_type = models.ForeignKey(ContentType, verbose_name=_('Content type'))
     object_id = models.PositiveIntegerField(verbose_name=_('Object ID'))
     obj = GenericForeignKey('content_type', 'object_id')
-    comment = models.TextField(verbose_name=_('Comment'), max_length=COMMENTS_MAX_LENGTH)
+    comment = models.TextField(verbose_name=_('Comment'))
     pub_date = models.DateTimeField(verbose_name=_('Date'), auto_now_add=True)
     is_removed = models.BooleanField(verbose_name='Is removed', default=False)
     path = ArrayField(models.PositiveIntegerField(), null=True, editable=False)
