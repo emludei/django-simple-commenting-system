@@ -64,9 +64,6 @@ class Comment(models.Model):
         if self.parent:
             tree_path.extend(self.parent.path)
             if len(tree_path) < COMMENTS_MAX_DEPTH:
-                f = open('test.txt', 'w')
-                f.write('{0}, {1}'.format(len(tree_path), COMMENTS_MAX_DEPTH))
-                f.close()
                 tree_path.append(self.id)
         else:
             tree_path.append(self.id)
