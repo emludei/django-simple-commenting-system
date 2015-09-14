@@ -3,7 +3,7 @@ from django.db import models, router, transaction
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import ArrayField
-from django.utils.translaion import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 
 from comments.sql_operations import remove_pk_from_path_tree
 from comments.managers import CommentManager
@@ -14,24 +14,35 @@ COMMENTS_MAX_DEPTH = getattr('settings', 'COMMENTS_MAX_DEPTH', 10)
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'))
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='author', verbose_name=_('User'))
     content_type = models.ForeignKey(ContentType, verbose_name=_('Content type'))
     object_id = models.PositiveIntegerField(verbose_name=_('Object ID'))
     obj = GenericForeignKey('content_type', 'object_id')
     comment = models.TextField(verbose_name=_('Comment'), max_length=COMMENTS_MAX_LENGTH)
     pub_date = models.DateTimeField(verbose_name=_('Date'), auto_now_add=True)
     is_removed = models.BooleanField(verbose_name='Is removed', default=False)
-    parent = models.ForeignKey('self', verbose_name=_('Parent'), null=True, blank=True, default=None)
-    path = ArrayField(models.PositiveIntegerField(), editable=False)
+    path = ArrayField(models.PositiveIntegerField(), null=True, editable=False)
+
+    parent = models.ForeignKey(
+        'self',
+        verbose_name=_('Parent'),
+        related_name='parent_for_comment',
+        null=True,
+        blank=True,
+        default=None
+    )
 
     objects = CommentManager()
 
+    @property
     def depth(self):
         return len(self.path)
 
+    @property
     def root_id(self):
         return self.path[0]
 
+    @property
     def root_path(self):
         Comment.objects.filter(pk__in=self.path)
 
@@ -53,9 +64,9 @@ class Comment(models.Model):
         if self.parent:
             tree_path.extend(self.parent.path)
             if len(self.parent.path) < COMMENTS_MAX_DEPTH:
-                tree_path.append(self.pk)
+                tree_path.append(self.id)
         else:
-            tree_path.append(self.pk)
+            tree_path.append(self.id)
 
         Comment.objects.filter(pk=self.pk).update(path=tree_path)
 
@@ -70,7 +81,15 @@ class Comment(models.Model):
             remove_pk_from_path_tree(db, self.pk, self.path)
             super(Comment, self).delete(*args, **kwargs)
 
-    class Meta(object):
+    def __str__(self):
+        return '<Comment: id {0}, user {1}, model {2}, object_id {3}>'.format(
+            self.id,
+            self.user.username,
+            self.content_type,
+            self.object_id
+        )
+
+    class Meta:
         ordering = ('path',)
         db_table = 'comments_comment'
         verbose_name = _('Comment')
