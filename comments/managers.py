@@ -2,8 +2,5 @@ from django.db import models
 
 
 class CommentManager(models.Manager):
-    def remove_tree(self, path):
-        self.get_queryset().filter(path__contains=path).update(is_removed=True)
-
-    def delete_tree(self, path):
-        self.get_queryset().filter(path__contains=path).delete()
+    def comments_count(self, content_type, object_id):
+        return self.get_queryset().filter(content_type=content_type, object_id=object_id).count()

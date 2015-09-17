@@ -41,17 +41,6 @@ class Comment(models.Model):
     def root_id(self):
         return self.path[0]
 
-    @property
-    def root_path(self):
-        Comment.objects.filter(pk__in=self.path)
-
-    def children(self):
-        Comment.objects.filter(path__contains=self.path)
-
-    def remove(self):
-        self.is_removed = True
-        self.save()
-
     def save(self, *args, **kwargs):
         skip_build_tree = kwargs.pop('skip_build_tree', False)
         super(Comment, self).save(*args, **kwargs)

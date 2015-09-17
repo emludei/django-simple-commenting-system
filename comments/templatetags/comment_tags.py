@@ -10,7 +10,7 @@ from comments.utils import annotate_comment_tree
 register = template.Library()
 
 
-RENDER_TEMPLATE_PATH = getattr(settings, 'RENDER_TEMPLATE_PATH', 'comments/render_comment_list.html')
+RENDER_COMMENT_TREE = getattr(settings, 'RENDER_COMMENT_TREE', 'comments/render_comment_tree.html')
 
 
 class BaseCommentNode(template.Node):
@@ -90,7 +90,7 @@ class RenderCommentListNode(CommentListNode):
         if object_id:
             qs = self.get_queryset(context)
             rendered_comment_list = render_to_string(
-                RENDER_TEMPLATE_PATH,
+                RENDER_COMMENT_TREE,
                 {'comment_list': self.get_context_value_from_queryset(qs)}
             )
 

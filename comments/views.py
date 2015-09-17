@@ -1,19 +1,23 @@
 import json
 
+from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 from django.contrib.contenttypes.models import ContentType
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.template.loader import render_to_string
 
-from comments.forms import CommentForm, COMMENTS_MAX_LENGTH
+from comments.forms import CommentForm
 
+
+RENDER_COMMENT = getattr(settings, 'RENDER_COMMENT', 'comments/render_comment.html')
+ALERTS_COMMENT = getattr(settings, 'ALERTS_COMMENT', 'comments/alert.html')
 
 ALERTS = {
     'alert_not_ajax': 'Ajax requests are only supported.',
-    'alert_not_post': 'Votes can only be made using POST query.',
-    'content_max_length': 'Max comment length is {0}'.format(COMMENTS_MAX_LENGTH),
+    'alert_not_post': 'Votes can only be made using POST query.'
 }
 
 
@@ -24,45 +28,44 @@ def json_error_response(error_message):
 class AddComment(View):
     def get(self, request, *args, **kwargs):
         if not request.is_ajax():
-            return render(request, 'comments/alert.html', {'alert': ALERTS['alert_not_post']})
+            return render(request, ALERTS_COMMENT, {'alert': ALERTS['alert_not_post']})
         return json_error_response(ALERTS['alert_not_post'])
 
     def post(self, request, *args, **kwargs):
         if not request.is_ajax():
-            return json_error_response(ALERTS['alert_not_ajax'])
+            return render(request, ALERTS_COMMENT, {'alert': ALERTS['alert_not_post']})
 
         parent = request.POST.get('parent', None)
         comment = request.POST.get('comment')
-        object_id = self.kwargs.get('pk')
+        object_id = request.POST.get('object_id')
         model = self.kwargs.get('model')
         content_type = ContentType.objects.get_for_model(model)
 
-        form = CommentForm(
-            object_id=object_id,
-            content_type=content_type,
-            user=request.user,
-            parent=parent,
-            comment=comment
-        )
+        data = {
+            'object_id': object_id,
+            'content_type': content_type.pk,
+            'user': request.user.pk,
+            'parent': parent,
+            'comment': comment
+        }
+
+        form = CommentForm(data)
 
         if form.is_valid():
             comment = form.save()
+            rendered_comment = render_to_string(RENDER_COMMENT, {'comment': comment})
 
             response = json.dumps({
-                'succes': True,
-                'comment': {
-                    'user': comment.user.username,
-                    'pub_date': comment.pub_date,
-                    'comment': comment.comment,
-                    'parent': comment.parent
-                }
+                'success': True,
+                'parent': comment.parent,
+                'comment': rendered_comment
             })
 
             return HttpResponse(response)
 
         else:
-            return json_error_response(ALERTS['content_max_length'])
+            return json_error_response(form.errors)
 
     @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        super(AddComment, self).dispatch(*args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        return super(AddComment, self).dispatch(request, *args, **kwargs)
