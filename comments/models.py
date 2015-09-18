@@ -53,6 +53,8 @@ class Comment(models.Model):
             tree_path.extend(self.parent.path)
             if len(tree_path) < COMMENTS_MAX_DEPTH:
                 tree_path.append(self.id)
+            else:
+                tree_path[-1] = self.id
         else:
             tree_path.append(self.id)
 
