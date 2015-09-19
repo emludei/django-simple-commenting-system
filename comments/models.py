@@ -55,13 +55,10 @@ class Comment(models.Model):
         if self.parent:
             tree_path.extend(self.parent.path)
 
-        if MAX_LENGTH_OF_COMMENT_TREE is None:
+        if MAX_LENGTH_OF_COMMENT_TREE is None or len(tree_path) < MAX_LENGTH_OF_COMMENT_TREE:
             tree_path.append(self.id)
         else:
-            if len(tree_path) < MAX_LENGTH_OF_COMMENT_TREE:
-                tree_path.append(self.id)
-            else:
-                tree_path[-1] = self.id
+            tree_path[-1] = self.id
 
         Comment.objects.filter(pk=self.pk).update(path=tree_path)
 
