@@ -11,6 +11,9 @@ from comments.managers import CommentManager
 
 COMMENTS_MAX_DEPTH = getattr(settings, 'COMMENTS_MAX_DEPTH', 10)
 
+# maximum length of "path" array (in database)...
+MAX_LENGTH_OF_COMMENT_TREE = getattr(settings, 'MAX_LENGTH_OF_COMMENT_TREE', None)
+
 
 class Comment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='author', verbose_name=_('User'))
@@ -52,7 +55,13 @@ class Comment(models.Model):
         if self.parent:
             tree_path.extend(self.parent.path)
 
-        tree_path.append(self.id)
+        if MAX_LENGTH_OF_COMMENT_TREE is None:
+            tree_path.append(self.id)
+        else:
+            if len(tree_path) < MAX_LENGTH_OF_COMMENT_TREE:
+                tree_path.append(self.id)
+            else:
+                tree_path[-1] = self.id
 
         Comment.objects.filter(pk=self.pk).update(path=tree_path)
 

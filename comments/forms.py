@@ -13,4 +13,4 @@ class CommentForm(forms.ModelForm):
 
     class Meta:
         model = Comment
-        fields = ['content_type', 'object_id', 'user', 'comment', 'parent']
+        fields = '__all__'

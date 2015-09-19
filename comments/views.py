@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 
 from comments.forms import CommentForm
+from comments.models import Comment
 
 
 RENDER_COMMENT = getattr(settings, 'RENDER_COMMENT', 'comments/render_comment.html')
@@ -29,12 +30,12 @@ def json_error_response(error_message):
 class AddComment(View):
     def get(self, request, *args, **kwargs):
         if not request.is_ajax():
-            return render(request, ALERTS_COMMENT, {'alert': ALERTS['alert_not_post']})
+            return render(request, ALERTS_COMMENT, {'alert': ALERTS['alert_not_ajax']})
         return json_error_response(ALERTS['alert_not_post'])
 
     def post(self, request, *args, **kwargs):
         if not request.is_ajax():
-            return render(request, ALERTS_COMMENT, {'alert': ALERTS['alert_not_post']})
+            return render(request, ALERTS_COMMENT, {'alert': ALERTS['alert_not_ajax']})
 
         parent = request.POST.get('parent', None)
         comment = request.POST.get('comment')
@@ -54,6 +55,10 @@ class AddComment(View):
 
         if form.is_valid():
             comment = form.save()
+
+            # after form.save comment.path is None...
+            comment = Comment.objects.get(pk=comment.id)
+
             rendered_comment = render_to_string(RENDER_COMMENT, {'comment': comment})
 
             response = json.dumps({

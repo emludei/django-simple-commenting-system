@@ -1,0 +1,33 @@
+{% load comment_tags %}
+
+<section id="comments" max-depth="{% comment_max_depth %}">
+    <h2>
+        Комментарии (
+            <span class="comments_count">{{ comment_list|length }}</span>
+        )
+    </h2>
+    {% for comment in comment_list|annotate_tree %}
+        {% if comment.open %}
+            <ul>
+        {% else %}
+            </li>
+        {% endif %}
+        <li class="comment_li" id="{{ comment.id }}" depth="{{ comment.depth }}">            
+            <div class="comment_info">
+                <p class="comment_user">{{ comment.user.username }}</p>
+                <p class="comment_data">Дата: {{ comment.pub_date|date:"d.m.Y, H:i" }}</p>
+                <button type="button" class="comment_reply btn btn-link">Ответить</button>
+            </div>
+            <div class="comment_text">
+                {% if comment.is_removed %}
+                    <p>Комментарий был удален.</p>
+                {% else %}
+                    {{ comment.comment }}
+                {% endif %}
+            </div>
+            <div class="reply_form_position"></div>
+        {% for close in comment.close %}
+        </li></ul>
+        {% endfor %}
+    {% endfor %}
+</section>

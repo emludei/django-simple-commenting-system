@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 
 from comments.models import Comment
 from comments.utils import annotate_comment_tree
+from comments.models import COMMENTS_MAX_DEPTH
 
 
 register = template.Library()
@@ -113,6 +114,11 @@ def render_comment_list(parser, token):
 def comments_count(obj):
     content_type = ContentType.objects.get_for_model(obj)
     return Comment.objects.filter(content_type=content_type, object_id=obj.id).count()
+
+
+@register.simple_tag
+def comment_max_depth():
+    return COMMENTS_MAX_DEPTH
 
 
 @register.filter

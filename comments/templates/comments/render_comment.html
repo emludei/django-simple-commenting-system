@@ -1,0 +1,15 @@
+<li class="comment_li" id="{{ comment.id }}" depth="{{ comment.depth }}">            
+    <div class="comment_info">
+        <p class="comment_user">{{ comment.user.username }}</p>
+        <p class="comment_data">Дата: {{ comment.pub_date|date:"d.m.Y, H:i" }}</p>
+        <button type="button" class="comment_reply btn btn-link">Ответить</button>
+    </div>
+    <div class="comment_text">
+        {% if comment.is_removed %}
+            <p>Комментарий был удален.</p>
+        {% else %}
+            {{ comment.comment }}
+        {% endif %}
+    </div>
+    <div class="reply_form_position"></div>
+</li>
