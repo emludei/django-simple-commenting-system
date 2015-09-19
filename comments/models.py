@@ -35,7 +35,7 @@ class Comment(models.Model):
 
     @property
     def depth(self):
-        return len(self.path)
+        return min(len(self.path), COMMENTS_MAX_DEPTH)
 
     @property
     def root_id(self):
@@ -51,12 +51,8 @@ class Comment(models.Model):
 
         if self.parent:
             tree_path.extend(self.parent.path)
-            if len(tree_path) < COMMENTS_MAX_DEPTH:
-                tree_path.append(self.id)
-            else:
-                tree_path[-1] = self.id
-        else:
-            tree_path.append(self.id)
+
+        tree_path.append(self.id)
 
         Comment.objects.filter(pk=self.pk).update(path=tree_path)
 
