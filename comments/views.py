@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
+from django.utils.translation import ugettext_lazy as _
 
 from comments.forms import CommentForm
 
@@ -16,8 +17,8 @@ RENDER_COMMENT = getattr(settings, 'RENDER_COMMENT', 'comments/render_comment.ht
 ALERTS_COMMENT = getattr(settings, 'ALERTS_COMMENT', 'comments/alert.html')
 
 ALERTS = {
-    'alert_not_ajax': 'Ajax requests are only supported.',
-    'alert_not_post': 'Votes can only be made using POST query.'
+    'alert_not_ajax': _('Ajax requests are only supported.'),
+    'alert_not_post': _('You can add comment only using POST query.')
 }
 
 
@@ -57,7 +58,7 @@ class AddComment(View):
 
             response = json.dumps({
                 'success': True,
-                'parent': comment.parent,
+                'parent': comment.parent.pk if comment.parent else None,
                 'comment': rendered_comment
             })
 
