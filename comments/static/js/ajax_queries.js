@@ -11,8 +11,6 @@
         }
 
         form_data.push({name: 'object_id', value: $(this).attr('id')});
-
-
         ajaxQueryComment(form_data, url_for_query, on_success);
         resetForm($(this));
 
