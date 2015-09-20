@@ -1,15 +1,23 @@
-<li class="comment_li" id="{{ comment.id }}" depth="{{ comment.depth }}">            
-    <div class="comment_info">
-        <p class="comment_user">{{ comment.user.username }}</p>
-        <p class="comment_data">Дата: {{ comment.pub_date|date:"d.m.Y, H:i" }}</p>
-        <button type="button" class="comment_reply btn btn-link">Ответить</button>
-    </div>
-    <div class="comment_text">
-        {% if comment.is_removed %}
-            <p>Комментарий был удален.</p>
+<li class="comment_li" id="{{ comment.id }}" depth="{{ comment.depth }}">
+    <div class="comment_data">
+        {% if not comment.is_removed %}
+            <div class="comment_info">
+                <p class="comment_user">{{ comment.user.username }}</p>
+                <p class="comment_data">Дата: {{ comment.pub_date|date:"d.m.Y, H:i" }}</p>
+                {% if perms.comments.remove_comment_tree %}
+                    <button type="button" action="{% url 'remove_comment_tree' %}" class="remove_comment_tree btn btn-link">Удалить дерево комментариев</button>
+                {% endif %}
+                {% if perms.comments.remove_comment %}
+                    <button type="button" action="{% url 'remove_comment' %}" class="remove_comment btn btn-link">Удалить коментарий</button>
+                {% endif %}
+                <button type="button" class="comment_reply btn btn-link">Ответить</button>
+            </div>
+            <div class="comment_text">
+                {{ comment.comment }}
+            </div>
+            <div class="reply_form_position"></div>
         {% else %}
-            {{ comment.comment }}
+            <p>Злые марсиане похитили комментарий.</p>
         {% endif %}
     </div>
-    <div class="reply_form_position"></div>
 </li>

@@ -75,3 +75,8 @@ class Comment(models.Model):
         db_table = 'comments_comment'
         verbose_name = _('Comment')
         verbose_name_plural = _('Comments')
+
+        permissions = (
+            ('remove_comment', 'Can remove comment'),
+            ('remove_comment_tree', 'Can remove comment tree'),
+        )

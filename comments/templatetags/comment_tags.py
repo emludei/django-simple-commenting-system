@@ -2,6 +2,7 @@ from django.conf import settings
 from django import template
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
+from django.template import RequestContext
 
 from comments.models import Comment
 from comments.utils import annotate_comment_tree
@@ -90,9 +91,11 @@ class RenderCommentListNode(CommentListNode):
         ctype, object_id = self.get_ctype_and_pk(context)
         if object_id:
             qs = self.get_queryset(context)
+            context['comment_list'] = self.get_context_value_from_queryset(qs)
+
             rendered_comment_list = render_to_string(
                 RENDER_COMMENT_TREE,
-                {'comment_list': self.get_context_value_from_queryset(qs)}
+                context
             )
 
             return rendered_comment_list
