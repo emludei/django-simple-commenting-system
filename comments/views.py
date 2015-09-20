@@ -19,6 +19,7 @@ from comments.models import Comment
 RENDER_COMMENT = getattr(settings, 'RENDER_COMMENT', 'comments/render_comment.html')
 ALERTS_COMMENT = getattr(settings, 'ALERTS_COMMENT', 'comments/alert.html')
 REMOVED_COMMENT = getattr(settings, 'REMOVED_COMMENT', 'comments/removed_comment_data.html')
+REMOVED_COMMENT_TREE = getattr(settings, 'REMOVED_COMMENT_TREE', 'comments/render_removed_comment_tree.html')
 
 ALERTS = {
     'alert_not_ajax': _('Ajax requests are only supported.'),
@@ -124,8 +125,8 @@ class RemoveCommentTree(BaseCommentView):
         parent_id = self.request.POST.get('parent_id', None)
 
         try:
-            Comment.objects.remove_comment_tree(parent_id)
-            replace_data = render_comment(request)
+            comments = Comment.objects.remove_comment_tree(parent_id)
+            replace_data = render_comment(request, comments, REMOVED_COMMENT_TREE)
         except ObjectDoesNotExist:
             return json_error_response(str(ALERTS['comment_not_exist']).format(parent_id))
 
@@ -133,5 +134,6 @@ class RemoveCommentTree(BaseCommentView):
             'success': True,
             'message': str(_('Comments tree successfully removed.')),
             'parent_id': parent_id,
-            'replace_data': replace_data
+            'replace_data': replace_data,
+            'list_id': [comment.id for comment in comments]
         }))

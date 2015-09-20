@@ -1,0 +1,16 @@
+{% load comment_tags %}
+
+{% for item in comment|annotate_tree %}
+    {% if item.open %}
+        <ul>
+    {% else %}
+        </li>
+    {% endif %}
+    <li class="comment_li" id="{{ item.id }}" depth="{{ item.depth }}">
+        <div class="comment_data">
+            <p>Злые марсиане похитили комментарий.</p>
+        </div>
+    {% for close in item.close %}
+    </li></ul>
+    {% endfor %}
+{% endfor %}

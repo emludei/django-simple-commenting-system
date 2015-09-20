@@ -63,7 +63,22 @@
         var on_success = function(data, status) {
             if (data.success) {
                 var parent = $('#comments').find('#' + data.parent_id);
-                parent.find('.comment_data').replaceWith(data.replace_data);
+                var replace_data = $(data.replace_data).children().unwrap();
+                var temp = parent.next();
+
+                while (temp.length) {
+                    var id = parseInt(temp.attr('id'))
+
+                    if (data.list_id.indexOf(id) > 0) {
+                        temp.remove();
+                        temp = parent.next();
+                    }
+                    else {
+                        temp = temp.next()
+                    }
+                }
+
+                parent.replaceWith(replace_data);
             }
         };
 
