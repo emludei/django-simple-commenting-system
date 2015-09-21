@@ -23,7 +23,6 @@
         
         addParentIfNotExist(form, comment.attr('id'));
         form.appendTo(comment.find('> .comment_data .reply_form_position'));
-
         event.preventDefault();
     });
 
@@ -57,7 +56,6 @@
 
         var query_url = $(this).attr('action');
 
-
         var on_success = function(data, status) {
             if (data.success) {
                 var parent = $('#comments').find('#' + data.parent_id);
@@ -75,13 +73,11 @@
                         temp = temp.next()
                     }
                 }
-
                 parent.replaceWith(replace_data);
             }
         };
 
         ajaxQueryComment(data, query_url, on_success);
-
         event.preventDefault();
     });
 

@@ -1,6 +1,12 @@
 from django.contrib import admin
+from django.utils.translation import ugettext_lazy as _
 
 from comments.models import Comment
+
+
+def remove_comments(modeladmin, request, queryset):
+    queryset.update(is_removed=True)
+remove_comments.short_description = _('To mark selected comments as removed')
 
 
 class CommentTabularInline(admin.TabularInline):
@@ -25,5 +31,6 @@ class CommentAdmin(admin.ModelAdmin):
     date_hierarchy = 'pub_date'
     ordering = ['-pub_date']
     raw_id_fields = ('user', 'parent')
+    actions = [remove_comments]
 
 admin.site.register(Comment, CommentAdmin)
