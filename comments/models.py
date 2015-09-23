@@ -22,7 +22,7 @@ class Comment(models.Model):
     obj = GenericForeignKey('content_type', 'object_id')
     comment = models.TextField(verbose_name=_('Comment'))
     pub_date = models.DateTimeField(verbose_name=_('Date'), auto_now_add=True)
-    is_removed = models.BooleanField(verbose_name='Is removed', default=False)
+    is_removed = models.BooleanField(verbose_name=_('Is removed'), default=False)
     path = ArrayField(models.PositiveIntegerField(), null=True, editable=False)
 
     parent = models.ForeignKey(
@@ -77,6 +77,6 @@ class Comment(models.Model):
         verbose_name_plural = _('Comments')
 
         permissions = (
-            ('remove_comment', 'Can remove comment'),
-            ('remove_comment_tree', 'Can remove comment tree'),
+            ('remove_comment', _('Can remove comment')),
+            ('remove_comment_tree', _('Can remove comment tree')),
         )
