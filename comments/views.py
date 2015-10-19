@@ -45,6 +45,8 @@ def render_comment(request, comment=None, template=REMOVED_COMMENT):
 class BaseCommentView(View):
     def get(self, request, *args, **kwargs):
         if not request.is_ajax():
+            with open('test.txt', 'w') as f:
+                f.write('lol')
             return render(request, ALERTS_COMMENT, {'alert': ALERTS['alert_not_ajax']})
         return json_error_response(str(ALERTS['alert_not_post']))
 

@@ -1,5 +1,4 @@
-(function($, undefined) {
-
+$(document).ready(function() {
      $('.comment_send_form').submit(function(event) {
         var form_data = $(this).serializeArray();
         var url_for_query = $(this).attr('action');
@@ -28,6 +27,7 @@
 
     $('#comments').on('click', '.remove_comment', function(event) {
         var comment = $(this).closest('.comment_li');
+        alert('vtf')
         var data ={
             comment_id: parseInt(comment.attr('id')),
             csrfmiddlewaretoken: $.cookie('csrftoken')
@@ -115,10 +115,11 @@
             return ul_condidate;
         }
         else {
-            var max_depth = $('#comments').attr('max-depth');
-            var current_depth = comment.attr('depth');
+            var max_depth = parseInt($('#comments').attr('max-depth'));
+            var current_depth = parseInt(comment.attr('depth'));
 
             if (max_depth > current_depth) {
+
                 var ul = document.createElement('ul');
                 comment.append(ul);
 
@@ -152,4 +153,4 @@
         form.appendTo($('#comment_form_original_position'));
     }
 
-})(jQuery);
+});
