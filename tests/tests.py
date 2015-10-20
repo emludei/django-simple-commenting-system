@@ -7,6 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 
 from comments.views import ALERTS
 from comments.forms import CommentForm
+from comments.models import Comment
+
 from . import models
 
 
@@ -25,6 +27,8 @@ COMMENTS_TEST_USER = getattr(
 # test data
 
 COMMENTS_TEST_DATA = getattr(settings, 'COMMENTS_TEST_DATA', ['data.json', 'user_data.json'])
+
+COMMENTS_IDS_ADN_DEPTH = getattr(settings, 'COMMENTS_IDS_ADN_DEPTH', {'base': 1, 'last': 6, 'last_depth': 3})
 
 
 def _get_user_model(model):
@@ -66,7 +70,7 @@ class RemoveCommentsMixin:
         self.assertContains(response, 'error_message')
 
 
-class BaseViewTest:
+class BaseTest:
     commented_object_model = models.TestCommentedObject
     fixtures = COMMENTS_TEST_DATA
 
@@ -85,6 +89,8 @@ class BaseViewTest:
 
         self.assertEqual(login, True)
 
+
+class BaseViewTest(BaseTest):
     def test_get_not_ajax_query(self):
         response = self.client.get(self.url)
 
@@ -167,15 +173,11 @@ class RemoveCommentTreeViewTest(BaseViewTest, RemoveCommentsMixin, TestCase):
         self.assertNotContains(response, 'error_message')
 
 
-class CommentFormTest(TestCase):
-    commented_object_model = models.TestCommentedObject
-    fixtures = COMMENTS_TEST_DATA
-
+class CommentFormTest(BaseTest, TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.commented_object = cls.commented_object_model.objects.create()
+        super(CommentFormTest, cls).setUpTestData()
         cls.content_type = ContentType.objects.get_for_model(cls.commented_object_model)
-        cls.test_user = _get_user_or_create()
 
     def test_valid_form(self):
         data = {
@@ -253,3 +255,40 @@ class CommentFormTest(TestCase):
         form = CommentForm(data=data)
 
         self.assertFalse(form.is_valid())
+
+
+class CommentModelTest(BaseTest, TestCase):
+    comment_model = Comment
+
+    def test_comment(self):
+        """
+        I think that this test is useless, but...
+        More tests for god of tests!
+
+        """
+        base_comment_in_thread = self.comment_model.objects.get(pk=COMMENTS_IDS_ADN_DEPTH['base'])
+        last_comment_in_thread = self.comment_model.objects.get(pk=COMMENTS_IDS_ADN_DEPTH['last'])
+
+        self.assertEqual(last_comment_in_thread.root_id, COMMENTS_IDS_ADN_DEPTH['base'])
+        self.assertEqual(last_comment_in_thread.depth, COMMENTS_IDS_ADN_DEPTH['last_depth'])
+
+        self.assertFalse(base_comment_in_thread.is_removed)
+        self.assertFalse(last_comment_in_thread.is_removed)
+
+        self.comment_model.objects.filter(pk=COMMENTS_IDS_ADN_DEPTH['base']).update(is_removed=True)
+
+        base_comment_in_thread.refresh_from_db()
+        last_comment_in_thread.refresh_from_db()
+
+        self.assertTrue(base_comment_in_thread.is_removed)
+        self.assertFalse(last_comment_in_thread.is_removed)
+
+        self.comment_model.objects.filter(
+            path__contains=[COMMENTS_IDS_ADN_DEPTH['base']]
+        ).update(is_removed=True)
+
+        base_comment_in_thread.refresh_from_db()
+        last_comment_in_thread.refresh_from_db()
+
+        self.assertTrue(base_comment_in_thread.is_removed)
+        self.assertTrue(last_comment_in_thread.is_removed)
