@@ -57,7 +57,11 @@ TEMPLATES = [
 
 COMMENTS_TEST_DATA = ['data.json', 'user_data.json']
 
-COMMENTS_IDS_ADN_DEPTH = {'base': 1, 'last': 6, 'last_depth': 3}
+COMMENTS_TEST_IDS_ADN_DEPTH = {
+    'base': 1,
+    'last': 6,
+    'last_depth': 3,
+}
 
 
 # staticfiles

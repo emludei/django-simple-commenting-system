@@ -28,7 +28,15 @@ COMMENTS_TEST_USER = getattr(
 
 COMMENTS_TEST_DATA = getattr(settings, 'COMMENTS_TEST_DATA', ['data.json', 'user_data.json'])
 
-COMMENTS_IDS_ADN_DEPTH = getattr(settings, 'COMMENTS_IDS_ADN_DEPTH', {'base': 1, 'last': 6, 'last_depth': 3})
+COMMENTS_IDS_ADN_DEPTH = getattr(
+    settings,
+    'COMMENTS_TEST_IDS_ADN_DEPTH',
+    {
+        'base': 1,
+        'last': 6,
+        'last_depth': 3
+    }
+)
 
 
 def _get_user_model(model):
@@ -257,12 +265,12 @@ class CommentFormTest(BaseTest, TestCase):
         self.assertFalse(form.is_valid())
 
 
-class CommentModelTest(BaseTest, TestCase):
+class CommentModelAndManagerTest(BaseTest, TestCase):
     comment_model = Comment
 
     def test_comment(self):
         """
-        I think that this test is useless, but...
+        May be this test is useless, but...
         More tests for god of tests!
 
         """
@@ -275,7 +283,9 @@ class CommentModelTest(BaseTest, TestCase):
         self.assertFalse(base_comment_in_thread.is_removed)
         self.assertFalse(last_comment_in_thread.is_removed)
 
-        self.comment_model.objects.filter(pk=COMMENTS_IDS_ADN_DEPTH['base']).update(is_removed=True)
+        qs = self.comment_model.objects.remove_comment(base_comment_in_thread.id)
+
+        self.assertEqual(qs.count(), 1)
 
         base_comment_in_thread.refresh_from_db()
         last_comment_in_thread.refresh_from_db()
@@ -283,9 +293,9 @@ class CommentModelTest(BaseTest, TestCase):
         self.assertTrue(base_comment_in_thread.is_removed)
         self.assertFalse(last_comment_in_thread.is_removed)
 
-        self.comment_model.objects.filter(
-            path__contains=[COMMENTS_IDS_ADN_DEPTH['base']]
-        ).update(is_removed=True)
+        qs = self.comment_model.objects.remove_comment_tree(COMMENTS_IDS_ADN_DEPTH['base'])
+
+        self.assertEqual(qs.count(), 4)
 
         base_comment_in_thread.refresh_from_db()
         last_comment_in_thread.refresh_from_db()
