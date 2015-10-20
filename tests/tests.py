@@ -1,6 +1,7 @@
 from django.apps import apps
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, Client
 from django.utils import six
 from django.contrib.contenttypes.models import ContentType
@@ -283,6 +284,28 @@ class CommentModelAndManagerTest(BaseTest, TestCase):
         self.assertFalse(base_comment_in_thread.is_removed)
         self.assertFalse(last_comment_in_thread.is_removed)
 
+        try:
+            self.comment_model.objects.remove_comment(-1)
+            self.fail('Removing of not existing comment must raise {0} exception [{1}]'.format(
+                ObjectDoesNotExist.__name__,
+                -1
+            ))
+
+        except ObjectDoesNotExist:
+            pass
+
+        try:
+            self.comment_model.objects.remove_comment_tree(-1)
+            self.fail(
+                'Removing of comment tree with not existing parent must raise {0} exception [{1}]'.format(
+                    ObjectDoesNotExist.__name__,
+                    -1
+                )
+            )
+
+        except ObjectDoesNotExist:
+            pass
+
         qs = self.comment_model.objects.remove_comment(base_comment_in_thread.id)
 
         self.assertEqual(qs.count(), 1)
@@ -293,7 +316,7 @@ class CommentModelAndManagerTest(BaseTest, TestCase):
         self.assertTrue(base_comment_in_thread.is_removed)
         self.assertFalse(last_comment_in_thread.is_removed)
 
-        qs = self.comment_model.objects.remove_comment_tree(COMMENTS_IDS_ADN_DEPTH['base'])
+        qs = self.comment_model.objects.remove_comment_tree(base_comment_in_thread.id)
 
         self.assertEqual(qs.count(), 4)
 
