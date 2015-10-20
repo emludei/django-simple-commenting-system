@@ -12,8 +12,20 @@ from . import models
 
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', None)
 
+# user data
 
-def get_user_model(model):
+COMMENTS_TEST_USER = getattr(
+    settings,
+    'COMMENTS_TEST_USER',
+    {'username': 'test', 'email': 'test@test.test', 'password': 'test'}
+)
+
+# test data
+
+COMMENTS_TEST_DATA = getattr(settings, 'COMMENTS_TEST_DATA', ['data.json', 'user_data.json'])
+
+
+def _get_user_model(model):
     if model is None:
         from django.contrib.auth import User
 
@@ -29,20 +41,46 @@ def get_user_model(model):
     return model
 
 
+def _get_user_or_create():
+    user_model = _get_user_model(AUTH_USER_MODEL)
+
+    try:
+        test_user = user_model.objects.get(pk=1)
+    except user_model.DoesNotExist:
+        test_user = user_model.objects.create_user(
+            COMMENTS_TEST_USER['username'],
+            COMMENTS_TEST_USER['email'],
+            COMMENTS_TEST_USER['password']
+        )
+
+    return test_user
+
+
+class RemoveCommentsMixin:
+    def test_remove_not_exist_comment(self):
+        response = self.client.post(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'error_message')
+
+
 class BaseViewTest:
     commented_object_model = models.TestCommentedObject
+    fixtures = COMMENTS_TEST_DATA
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.commented_object = cls.commented_object_model.objects.create()
+        cls.test_user = _get_user_or_create()
 
     def setUp(self):
         self.client = Client()
-        self.username = 'test'
-        self.password = 'test'
-        self.email = 'test@test.test'
 
-        self.test_user = get_user_model(
-            AUTH_USER_MODEL
-        ).objects.create_user(self.username, self.email, self.password)
+        login = self.client.login(
+            username=COMMENTS_TEST_USER['username'],
+            password=COMMENTS_TEST_USER['password']
+        )
 
-        login = self.client.login(username=self.username, password=self.password)
         self.assertEqual(login, True)
 
     def test_get_not_ajax_query(self):
@@ -70,12 +108,10 @@ class AddCommentVeiwTest(BaseViewTest, TestCase):
         super(AddCommentVeiwTest, self).setUp()
 
     def test_post_ajax_query_valid(self):
-        obj = self.commented_object_model.objects.create()
-
         data = {
             'comment': 'test',
-            'object_id': obj.id,
-            'model': self.commented_object_model,
+            'object_id': self.commented_object.id,
+            'model': self.commented_object_model
         }
 
         response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -85,12 +121,10 @@ class AddCommentVeiwTest(BaseViewTest, TestCase):
         self.assertNotContains(response, 'error_message')
 
     def test_post_ajax_query_empty_comment(self):
-        obj = self.commented_object_model.objects.create()
-
         data = {
             'comment': '',
-            'object_id': obj.id,
-            'model': self.commented_object_model,
+            'object_id': self.commented_object.id,
+            'model': self.commented_object_model
         }
 
         response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -99,13 +133,33 @@ class AddCommentVeiwTest(BaseViewTest, TestCase):
         self.assertContains(response, 'error_message')
 
 
-class RemoveCommentViewTest(BaseViewTest, TestCase):
+class RemoveCommentViewTest(BaseViewTest, RemoveCommentsMixin, TestCase):
     def setUp(self):
         self.url = reverse('remove_comment')
         super(RemoveCommentViewTest, self).setUp()
 
+    def test_remove_exist_comment(self):
+        data = {
+            'comment_id': 1
+        }
 
-class RemoveCommentTreeViewTest(BaseViewTest, TestCase):
+        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'error_message')
+
+
+class RemoveCommentTreeViewTest(BaseViewTest, RemoveCommentsMixin, TestCase):
     def setUp(self):
         self.url = reverse('remove_comment_tree')
         super(RemoveCommentTreeViewTest, self).setUp()
+
+    def test_remove_exist_comment_tree(self):
+        data = {
+            'parent_id': 1
+        }
+
+        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'error_message')

@@ -1,0 +1,86 @@
+[
+    {
+        "fields": {
+            "content_type": 7,
+            "pub_date": "2015-10-20T15:54:13.145Z",
+            "path": "[\"1\"]",
+            "user": 1,
+            "object_id": 1,
+            "comment": "First thread [1]",
+            "is_removed": false,
+            "parent": null
+        },
+        "pk": 1,
+        "model": "comments.comment"
+    },
+    {
+        "fields": {
+            "content_type": 7,
+            "pub_date": "2015-10-20T15:55:11.795Z",
+            "path": "[\"1\", \"2\"]",
+            "user": 1,
+            "object_id": 1,
+            "comment": "sub of first thread [2]",
+            "is_removed": false,
+            "parent": 1
+        },
+        "pk": 2,
+        "model": "comments.comment"
+    },
+    {
+        "fields": {
+            "content_type": 7,
+            "pub_date": "2015-10-20T15:55:22.073Z",
+            "path": "[\"1\", \"2\", \"3\"]",
+            "user": 1,
+            "object_id": 1,
+            "comment": "depth [3]",
+            "is_removed": false,
+            "parent": 2
+        },
+        "pk": 3,
+        "model": "comments.comment"
+    },
+    {
+        "fields": {
+            "content_type": 7,
+            "pub_date": "2015-10-20T15:55:35.570Z",
+            "path": "[\"4\"]",
+            "user": 1,
+            "object_id": 1,
+            "comment": "second thread [1]\r\n",
+            "is_removed": false,
+            "parent": null
+        },
+        "pk": 4,
+        "model": "comments.comment"
+    },
+    {
+        "fields": {
+            "content_type": 7,
+            "pub_date": "2015-10-20T15:55:47.467Z",
+            "path": "[\"4\", \"5\"]",
+            "user": 1,
+            "object_id": 1,
+            "comment": "depth [2]",
+            "is_removed": false,
+            "parent": 4
+        },
+        "pk": 5,
+        "model": "comments.comment"
+    },
+    {
+        "fields": {
+            "content_type": 7,
+            "pub_date": "2015-10-20T15:55:59.357Z",
+            "path": "[\"1\", \"2\", \"6\"]",
+            "user": 1,
+            "object_id": 1,
+            "comment": "depth [3]",
+            "is_removed": false,
+            "parent": 2
+        },
+        "pk": 6,
+        "model": "comments.comment"
+    }
+]

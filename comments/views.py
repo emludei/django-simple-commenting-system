@@ -106,7 +106,7 @@ class RemoveComment(BaseCommentView):
         try:
             Comment.objects.remove_comment(comment_id)
             rendered_comment = render_comment(request)
-        except ObjectDoesNotExist:
+        except (ObjectDoesNotExist, ValueError):
             return json_error_response(str(ALERTS['comment_not_exist']).format(comment_id))
 
         return HttpResponse(json.dumps({
@@ -127,7 +127,7 @@ class RemoveCommentTree(BaseCommentView):
         try:
             comments = Comment.objects.remove_comment_tree(parent_id)
             replace_data = render_comment(request, comments, REMOVED_COMMENT_TREE)
-        except ObjectDoesNotExist:
+        except (ObjectDoesNotExist, ValueError):
             return json_error_response(str(ALERTS['comment_not_exist']).format(parent_id))
 
         return HttpResponse(json.dumps({
