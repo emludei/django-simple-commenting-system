@@ -284,6 +284,27 @@ class CommentModelAndManagerTest(BaseTest, TestCase):
         self.assertFalse(base_comment_in_thread.is_removed)
         self.assertFalse(last_comment_in_thread.is_removed)
 
+        qs = self.comment_model.objects.remove_comment(base_comment_in_thread.id)
+
+        self.assertEqual(qs.count(), 1)
+
+        base_comment_in_thread.refresh_from_db()
+        last_comment_in_thread.refresh_from_db()
+
+        self.assertTrue(base_comment_in_thread.is_removed)
+        self.assertFalse(last_comment_in_thread.is_removed)
+
+        qs = self.comment_model.objects.remove_comment_tree(base_comment_in_thread.id)
+
+        self.assertEqual(qs.count(), 4)
+
+        base_comment_in_thread.refresh_from_db()
+        last_comment_in_thread.refresh_from_db()
+
+        self.assertTrue(base_comment_in_thread.is_removed)
+        self.assertTrue(last_comment_in_thread.is_removed)
+
+    def test_remove_not_exist_comments(self):
         try:
             self.comment_model.objects.remove_comment(-1)
             self.fail('Removing of not existing comment must raise {0} exception [{1}]'.format(
@@ -305,23 +326,3 @@ class CommentModelAndManagerTest(BaseTest, TestCase):
 
         except ObjectDoesNotExist:
             pass
-
-        qs = self.comment_model.objects.remove_comment(base_comment_in_thread.id)
-
-        self.assertEqual(qs.count(), 1)
-
-        base_comment_in_thread.refresh_from_db()
-        last_comment_in_thread.refresh_from_db()
-
-        self.assertTrue(base_comment_in_thread.is_removed)
-        self.assertFalse(last_comment_in_thread.is_removed)
-
-        qs = self.comment_model.objects.remove_comment_tree(base_comment_in_thread.id)
-
-        self.assertEqual(qs.count(), 4)
-
-        base_comment_in_thread.refresh_from_db()
-        last_comment_in_thread.refresh_from_db()
-
-        self.assertTrue(base_comment_in_thread.is_removed)
-        self.assertTrue(last_comment_in_thread.is_removed)
