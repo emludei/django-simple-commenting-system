@@ -3,8 +3,10 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
 from django.utils import six
+from django.contrib.contenttypes.models import ContentType
 
 from comments.views import ALERTS
+from comments.forms import CommentForm
 from . import models
 
 
@@ -163,3 +165,91 @@ class RemoveCommentTreeViewTest(BaseViewTest, RemoveCommentsMixin, TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'error_message')
+
+
+class CommentFormTest(TestCase):
+    commented_object_model = models.TestCommentedObject
+    fixtures = COMMENTS_TEST_DATA
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.commented_object = cls.commented_object_model.objects.create()
+        cls.content_type = ContentType.objects.get_for_model(cls.commented_object_model)
+        cls.test_user = _get_user_or_create()
+
+    def test_valid_form(self):
+        data = {
+            'object_id': self.commented_object.id,
+            'content_type': self.content_type.id,
+            'user': self.test_user.id,
+            'parent': None,
+            'comment': 'test'
+        }
+
+        form = CommentForm(data=data)
+
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_form_no_object_id(self):
+        data = {
+            'content_type': self.content_type.id,
+            'user': self.test_user.id,
+            'parent': None,
+            'comment': 'test'
+        }
+
+        form = CommentForm(data=data)
+
+        self.assertFalse(form.is_valid())
+
+    def test_invalid_form_not_exist_parent(self):
+        data = {
+            'object_id': self.commented_object.id,
+            'content_type': self.content_type.id,
+            'user': self.test_user.id,
+            'parent': -1,
+            'comment': 'test'
+        }
+
+        form = CommentForm(data=data)
+
+        self.assertFalse(form.is_valid())
+
+    def test_invalid_form_not_exist_content_type(self):
+        data = {
+            'object_id': self.commented_object.id,
+            'content_type': -1,
+            'user': self.test_user.id,
+            'parent': None,
+            'comment': 'test'
+        }
+
+        form = CommentForm(data=data)
+
+        self.assertFalse(form.is_valid())
+
+    def test_invalid_form_not_exist_user(self):
+        data = {
+            'object_id': self.commented_object.id,
+            'content_type': self.content_type.id,
+            'user': -1,
+            'parent': None,
+            'comment': 'test'
+        }
+
+        form = CommentForm(data=data)
+
+        self.assertFalse(form.is_valid())
+
+    def test_invalid_form_empty_comment(self):
+        data = {
+            'object_id': self.commented_object.id,
+            'content_type': self.content_type.id,
+            'user': self.test_user.id,
+            'parent': None,
+            'comment': ''
+        }
+
+        form = CommentForm(data=data)
+
+        self.assertFalse(form.is_valid())
