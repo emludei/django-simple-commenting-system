@@ -20,7 +20,7 @@ if not settings.configured:
                 'PASSWORD': 'app_comments',
             }
         },
-        ROOT_URLCONF='src.urls',
+        ROOT_URLCONF='tests.urls',
         INSTALLED_APPS=[
             'django.contrib.auth',
             'django.contrib.sessions',

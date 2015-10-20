@@ -99,7 +99,7 @@ class AddComment(BaseCommentView):
 class RemoveComment(BaseCommentView):
     def post(self, request, *args, **kwargs):
         if not request.is_ajax():
-            return self.render_alert_not_ajax(request, REMOVED_COMMENT)
+            return self.render_alert_not_ajax(request)
 
         comment_id = self.request.POST.get('comment_id', None)
 

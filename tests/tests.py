@@ -29,9 +29,10 @@ def get_user_model(model):
     return model
 
 
-class AddCommentVeiwTest(TestCase):
+class BaseViewTest:
+    commented_object_model = models.TestCommentedObject
+
     def setUp(self):
-        self.url = reverse('add_comment')
         self.client = Client()
         self.username = 'test'
         self.password = 'test'
@@ -62,14 +63,49 @@ class AddCommentVeiwTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, ALERTS['alert_not_ajax'])
 
-    def test_post_ajax_query(self):
+
+class AddCommentVeiwTest(BaseViewTest, TestCase):
+    def setUp(self):
+        self.url = reverse('add_comment')
+        super(AddCommentVeiwTest, self).setUp()
+
+    def test_post_ajax_query_valid(self):
+        obj = self.commented_object_model.objects.create()
+
         data = {
-            'parent': 1,
             'comment': 'test',
-            'object_id': 2,
-            'model': models.TestCommentedObject,
+            'object_id': obj.id,
+            'model': self.commented_object_model,
         }
 
         response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
         self.assertEqual(response.status_code, 200)
+
+        self.assertNotContains(response, 'error_message')
+
+    def test_post_ajax_query_empty_comment(self):
+        obj = self.commented_object_model.objects.create()
+
+        data = {
+            'comment': '',
+            'object_id': obj.id,
+            'model': self.commented_object_model,
+        }
+
+        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'error_message')
+
+
+class RemoveCommentViewTest(BaseViewTest, TestCase):
+    def setUp(self):
+        self.url = reverse('remove_comment')
+        super(RemoveCommentViewTest, self).setUp()
+
+
+class RemoveCommentTreeViewTest(BaseViewTest, TestCase):
+    def setUp(self):
+        self.url = reverse('remove_comment_tree')
+        super(RemoveCommentTreeViewTest, self).setUp()
