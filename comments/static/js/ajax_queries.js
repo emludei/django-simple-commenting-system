@@ -27,7 +27,6 @@ $(document).ready(function() {
 
     $('#comments').on('click', '.remove_comment', function(event) {
         var comment = $(this).closest('.comment_li');
-        alert('vtf')
         var data ={
             comment_id: parseInt(comment.attr('id')),
             csrfmiddlewaretoken: $.cookie('csrftoken')
